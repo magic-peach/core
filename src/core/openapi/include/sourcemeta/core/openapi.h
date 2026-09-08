@@ -64,6 +64,55 @@ SOURCEMETA_CORE_OPENAPI_EXPORT
 auto openapi_version(const JSON &document) -> std::optional<OpenAPIVersion>;
 
 /// @ingroup openapi
+/// The contact information that an OpenAPI Description declares for the API.
+/// Every value borrows from the document it was read from, so that document
+/// must outlive this
+struct OpenAPIContact {
+  /// The identifying name of the contact person or organisation
+  std::optional<JSON::StringView> name{std::nullopt};
+  /// Where to find the contact information, as a URI reference
+  std::optional<JSON::StringView> url{std::nullopt};
+  /// The email address of the contact person or organisation
+  std::optional<JSON::StringView> email{std::nullopt};
+};
+
+/// @ingroup openapi
+/// The license information that an OpenAPI Description declares for the API.
+/// Every value borrows from the document it was read from, so that document
+/// must outlive this
+struct OpenAPILicense {
+  /// The license name used for the API
+  JSON::StringView name{};
+  /// The SPDX license expression for the API, recorded as it was written, as
+  /// the specification states no requirement on its syntax
+  std::optional<JSON::StringView> identifier{std::nullopt};
+  /// Where to find the license used for the API, as a URI reference
+  std::optional<JSON::StringView> url{std::nullopt};
+};
+
+/// @ingroup openapi
+/// The metadata that an OpenAPI Description declares about the API it
+/// describes. Every value borrows from the document it was read from, so that
+/// document must outlive this
+struct OpenAPIInfo {
+  /// The title of the API
+  JSON::StringView title{};
+  /// The version of the document, which is unrelated to the version of the
+  /// OpenAPI Specification that it declares
+  JSON::StringView version{};
+  /// A short summary of the API
+  std::optional<JSON::StringView> summary{std::nullopt};
+  /// A description of the API, which may be written in CommonMark
+  std::optional<JSON::StringView> description{std::nullopt};
+  /// Where to find the terms of service for the API, as a URI reference
+  std::optional<JSON::StringView> terms_of_service{std::nullopt};
+  /// The contact information for the API
+  std::optional<OpenAPIContact> contact{std::nullopt};
+  /// The license information for the API
+  std::optional<OpenAPILicense> license{std::nullopt};
+};
+
+/// @ingroup openapi
 /// What a resolver hands back: either a document it owns or one that the
 /// caller keeps alive. The root of the result may be an OpenAPI Object or a
 /// Schema Object, as an OpenAPI Description may span both
@@ -142,6 +191,27 @@ public:
   ///        sourcemeta::core::OpenAPIVersion::OPENAPI_3_1);
   /// ```
   [[nodiscard]] auto version() const noexcept -> OpenAPIVersion;
+
+  /// Get the metadata that the entry document declares about the API. For
+  /// example:
+  ///
+  /// ```cpp
+  /// #include <sourcemeta/core/json.h>
+  /// #include <sourcemeta/core/openapi.h>
+  /// #include <cassert>
+  ///
+  /// const auto document{sourcemeta::core::parse_json(R"({
+  ///   "openapi": "3.1.1",
+  ///   "info": { "title": "Example", "version": "1.0.0" },
+  ///   "paths": {}
+  /// })")};
+  ///
+  /// const sourcemeta::core::OpenAPIFrame frame{document, nullptr};
+  /// assert(frame.info().title == "Example");
+  /// assert(frame.info().version == "1.0.0");
+  /// assert(!frame.info().license.has_value());
+  /// ```
+  [[nodiscard]] auto info() const noexcept -> const OpenAPIInfo &;
 
   /// Export the frame as JSON. This is the complete state of the frame, and
   /// for now its only window

@@ -1,5 +1,7 @@
 #include <sourcemeta/core/openapi.h>
 
+#include "info.h"
+
 #include <memory>      // std::make_unique
 #include <string_view> // std::string_view
 #include <utility>     // std::unreachable
@@ -65,11 +67,13 @@ namespace sourcemeta::core {
 
 struct OpenAPIFrame::Internal {
   OpenAPIVersion version;
+  OpenAPIInfo info;
 };
 
 OpenAPIFrame::OpenAPIFrame(const JSON &document, const OpenAPIResolver &,
                            const std::string_view)
-    : internal_{std::make_unique<Internal>(detect_version(document))} {}
+    : internal_{std::make_unique<Internal>(detect_version(document),
+                                           openapi_parse_info(document))} {}
 
 OpenAPIFrame::~OpenAPIFrame() = default;
 
@@ -77,11 +81,16 @@ auto OpenAPIFrame::version() const noexcept -> OpenAPIVersion {
   return this->internal_->version;
 }
 
+auto OpenAPIFrame::info() const noexcept -> const OpenAPIInfo & {
+  return this->internal_->info;
+}
+
 auto OpenAPIFrame::to_json(const std::optional<PointerPositionTracker> &) const
     -> JSON {
+  // Read through the accessors rather than the internal state, so that what
+  // this reports and what a caller can observe cannot drift apart
   auto result{JSON::make_object()};
-  result.assign_assume_new("version",
-                           JSON{version_string(this->internal_->version)});
+  result.assign_assume_new("version", JSON{version_string(this->version())});
   return result;
 }
 

@@ -203,3 +203,532 @@ TEST(swagger_document) {
     EXPECT_EQ(error.location(), sourcemeta::core::EMPTY_POINTER);
   }
 }
+
+TEST(info_missing) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The OpenAPI Description must provide an Info Object");
+    EXPECT_EQ(error.location(), sourcemeta::core::EMPTY_POINTER);
+  }
+}
+
+TEST(info_is_null) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": null,
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object must be an object");
+    const sourcemeta::core::Pointer location{"info"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_is_an_array) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": [],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object must be an object");
+    const sourcemeta::core::Pointer location{"info"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_is_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": "Example",
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object must be an object");
+    const sourcemeta::core::Pointer location{"info"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_missing_title) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object must declare a title");
+    const sourcemeta::core::Pointer location{"info"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_missing_version) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object must declare a version");
+    const sourcemeta::core::Pointer location{"info"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_title_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": 1, "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object title must be a string");
+    const sourcemeta::core::Pointer location{"info", "title"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_version_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": 1 },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object version must be a string");
+    const sourcemeta::core::Pointer location{"info", "version"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_summary_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "summary": [] },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object summary must be a string");
+    const sourcemeta::core::Pointer location{"info", "summary"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_description_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "description": false },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object description must be a string");
+    const sourcemeta::core::Pointer location{"info", "description"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_terms_of_service_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "termsOfService": 1 },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Info Object terms of service must be a string");
+    const sourcemeta::core::Pointer location{"info", "termsOfService"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_terms_of_service_is_not_a_uri_reference) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "termsOfService": "https://example.com/ terms" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Info Object terms of service must be a URI reference");
+    const sourcemeta::core::Pointer location{"info", "termsOfService"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_unknown_field) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "licence": {} },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object does not define this field");
+    const sourcemeta::core::Pointer location{"info", "licence"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(info_extension_without_the_prefix) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "internal-id": 1 },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Info Object does not define this field");
+    const sourcemeta::core::Pointer location{"info", "internal-id"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(contact_is_not_an_object) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "contact": "support@example.com" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Contact Object must be an object");
+    const sourcemeta::core::Pointer location{"info", "contact"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(contact_name_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "contact": { "name": 1 } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Contact Object name must be a string");
+    const sourcemeta::core::Pointer location{"info", "contact", "name"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(contact_url_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "contact": { "url": 1 } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Contact Object URI must be a string");
+    const sourcemeta::core::Pointer location{"info", "contact", "url"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(contact_url_is_not_a_uri_reference) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "contact": { "url": "https://example.com/a b" } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Contact Object URI must be a URI reference");
+    const sourcemeta::core::Pointer location{"info", "contact", "url"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(contact_email_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "contact": { "email": 1 } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Contact Object email must be a string");
+    const sourcemeta::core::Pointer location{"info", "contact", "email"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(contact_email_is_not_an_email_address) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "contact": { "email": "support" } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Contact Object email must be an email address");
+    const sourcemeta::core::Pointer location{"info", "contact", "email"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(contact_unknown_field) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "contact": { "phone": "555" } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Contact Object does not define this field");
+    const sourcemeta::core::Pointer location{"info", "contact", "phone"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(license_is_not_an_object) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "license": "MIT" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The License Object must be an object");
+    const sourcemeta::core::Pointer location{"info", "license"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(license_missing_name) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "license": { "identifier": "MIT" } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The License Object must declare a name");
+    const sourcemeta::core::Pointer location{"info", "license"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(license_name_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "license": { "name": 1 } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The License Object name must be a string");
+    const sourcemeta::core::Pointer location{"info", "license", "name"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(license_identifier_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "license": { "name": "MIT", "identifier": 1 } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The License Object identifier must be a string");
+    const sourcemeta::core::Pointer location{"info", "license", "identifier"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(license_url_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "license": { "name": "MIT", "url": 1 } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The License Object URI must be a string");
+    const sourcemeta::core::Pointer location{"info", "license", "url"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(license_url_is_not_a_uri_reference) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "license": { "name": "MIT", "url": "https://example.com/a b" } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The License Object URI must be a URI reference");
+    const sourcemeta::core::Pointer location{"info", "license", "url"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(license_identifier_and_url_together) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "license": { "name": "MIT", "identifier": "MIT", "url": "https://example.com" } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(
+        error.what(),
+        "The License Object identifier and URI are mutually exclusive");
+    const sourcemeta::core::Pointer location{"info", "license"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(license_unknown_field) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0", "license": { "name": "MIT", "spdx": "MIT" } },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The License Object does not define this field");
+    const sourcemeta::core::Pointer location{"info", "license", "spdx"};
+    EXPECT_EQ(error.location(), location);
+  }
+}

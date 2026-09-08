@@ -1,0 +1,14 @@
+{
+  "document": {
+    "openapi": "3.1.0",
+    "info": {
+      "title": "API",
+      "summary": "My lovely API",
+      "version": "1.0.0"
+    },
+    "components": {}
+  },
+  "frame": {
+    "version": "3.1"
+  }
+}
