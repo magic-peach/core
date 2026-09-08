@@ -122,6 +122,27 @@ public:
   OpenAPIFrame(OpenAPIFrame &&) = delete;
   auto operator=(OpenAPIFrame &&) -> OpenAPIFrame & = delete;
 
+  /// Get the version of the OpenAPI Specification that the entry document
+  /// declares. The patch component of that declaration carries no meaning, so
+  /// every `3.1.x` release reports the same version. For example:
+  ///
+  /// ```cpp
+  /// #include <sourcemeta/core/json.h>
+  /// #include <sourcemeta/core/openapi.h>
+  /// #include <cassert>
+  ///
+  /// const auto document{sourcemeta::core::parse_json(R"({
+  ///   "openapi": "3.1.1",
+  ///   "info": { "title": "Example", "version": "1.0.0" },
+  ///   "paths": {}
+  /// })")};
+  ///
+  /// const sourcemeta::core::OpenAPIFrame frame{document, nullptr};
+  /// assert(frame.version() ==
+  ///        sourcemeta::core::OpenAPIVersion::OPENAPI_3_1);
+  /// ```
+  [[nodiscard]] auto version() const noexcept -> OpenAPIVersion;
+
   /// Export the frame as JSON. This is the complete state of the frame, and
   /// for now its only window
   [[nodiscard]] auto to_json(

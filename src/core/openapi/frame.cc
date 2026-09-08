@@ -73,6 +73,10 @@ OpenAPIFrame::OpenAPIFrame(const JSON &document, const OpenAPIResolver &,
 
 OpenAPIFrame::~OpenAPIFrame() = default;
 
+auto OpenAPIFrame::version() const noexcept -> OpenAPIVersion {
+  return this->internal_->version;
+}
+
 auto OpenAPIFrame::to_json(const std::optional<PointerPositionTracker> &) const
     -> JSON {
   auto result{JSON::make_object()};
