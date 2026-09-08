@@ -846,3 +846,367 @@ TEST(json_schema_dialect_without_a_scheme_body) {
     EXPECT_EQ(error.location(), location);
   }
 }
+
+TEST(servers_is_not_an_array) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": "https://example.com",
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The OpenAPI Description servers must be an array");
+    const sourcemeta::core::Pointer location{"servers"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(servers_is_an_object) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": { "url": "/v1" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The OpenAPI Description servers must be an array");
+    const sourcemeta::core::Pointer location{"servers"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_is_not_an_object) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ "https://example.com" ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Server Object must be an object");
+    const sourcemeta::core::Pointer location{"servers", 0};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_missing_url) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "description": "Production" } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Server Object must declare a URL");
+    const sourcemeta::core::Pointer location{"servers", 0};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_url_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": 1 } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Server Object URL must be a string");
+    const sourcemeta::core::Pointer location{"servers", 0, "url"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_description_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/v1", "description": 1 } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Server Object description must be a string");
+    const sourcemeta::core::Pointer location{"servers", 0, "description"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_unknown_field) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/v1", "variable": {} } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Server Object does not define this field");
+    const sourcemeta::core::Pointer location{"servers", 0, "variable"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_second_entry_is_invalid) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/v1" }, { "description": "No URL" } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Server Object must declare a URL");
+    const sourcemeta::core::Pointer location{"servers", 1};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variables_is_not_an_object) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": [] } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Server Object variables must be an object");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_is_not_an_object) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": "v1" } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The Server Variable Object must be an object");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables",
+                                             "version"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_missing_default) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": {} } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Server Variable Object must declare a default");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables",
+                                             "version"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_default_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": { "default": 1 } } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Server Variable Object default must be a string");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables",
+                                             "version", "default"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_description_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": { "default": "v1", "description": 1 } } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Server Variable Object description must be a string");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables",
+                                             "version", "description"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_enum_is_not_an_array) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": { "default": "v1", "enum": "v1" } } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Server Variable Object enumeration must be an array");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables",
+                                             "version", "enum"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_enum_is_empty) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": { "default": "v1", "enum": [] } } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Server Variable Object enumeration must not be empty");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables",
+                                             "version", "enum"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_enum_holds_a_number) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": { "default": "v1", "enum": [ "v1", 2 ] } } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(
+        error.what(),
+        "The Server Variable Object enumeration must only hold strings");
+    const sourcemeta::core::Pointer location{"servers", 0,      "variables",
+                                             "version", "enum", 1};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_default_outside_enum) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": { "default": "v3", "enum": [ "v1", "v2" ] } } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(
+        error.what(),
+        "The Server Variable Object default must exist in its enumeration");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables",
+                                             "version", "default"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(server_variable_unknown_field) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "servers": [ { "url": "/{version}", "variables": { "version": { "default": "v1", "examples": [] } } } ],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The Server Variable Object does not define this field");
+    const sourcemeta::core::Pointer location{"servers", 0, "variables",
+                                             "version", "examples"};
+    EXPECT_EQ(error.location(), location);
+  }
+}

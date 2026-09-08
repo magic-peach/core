@@ -3,22 +3,18 @@
 
 #include <sourcemeta/core/openapi.h>
 
-#include <sourcemeta/core/email.h>
-#include <sourcemeta/core/uri.h>
+#include "helpers.h"
 
-#include <algorithm>   // std::ranges::find
+#include <sourcemeta/core/email.h>
+
 #include <array>       // std::array
-#include <cstddef>     // std::size_t
 #include <string_view> // std::string_view
 
 namespace sourcemeta::core {
 
-using namespace std::string_view_literals;
-
 constexpr auto OPENAPI_HASH_INFO{JSON::Object::hash("info"sv)};
 constexpr auto OPENAPI_HASH_TITLE{JSON::Object::hash("title"sv)};
 constexpr auto OPENAPI_HASH_SUMMARY{JSON::Object::hash("summary"sv)};
-constexpr auto OPENAPI_HASH_DESCRIPTION{JSON::Object::hash("description"sv)};
 constexpr auto OPENAPI_HASH_TERMS_OF_SERVICE{
     JSON::Object::hash("termsOfService"sv)};
 constexpr auto OPENAPI_HASH_CONTACT{JSON::Object::hash("contact"sv)};
@@ -29,10 +25,6 @@ constexpr auto OPENAPI_HASH_URL{JSON::Object::hash("url"sv)};
 constexpr auto OPENAPI_HASH_EMAIL{JSON::Object::hash("email"sv)};
 constexpr auto OPENAPI_HASH_IDENTIFIER{JSON::Object::hash("identifier"sv)};
 
-// OpenAPI Specification 3.1.1, Section 4.9: "The field name MUST begin with
-// `x-`, for example, `x-internal-id`"
-constexpr auto OPENAPI_EXTENSION_PREFIX{"x-"sv};
-
 constexpr std::array<JSON::StringView, 7> OPENAPI_INFO_FIELDS{
     {"title"sv, "summary"sv, "description"sv, "termsOfService"sv, "contact"sv,
      "license"sv, "version"sv}};
@@ -42,56 +34,6 @@ constexpr std::array<JSON::StringView, 3> OPENAPI_CONTACT_FIELDS{
 
 constexpr std::array<JSON::StringView, 3> OPENAPI_LICENSE_FIELDS{
     {"name"sv, "identifier"sv, "url"sv}};
-
-inline auto openapi_child(const Pointer &base, const JSON::StringView field)
-    -> Pointer {
-  return base.concat(JSON::String{field});
-}
-
-// OpenAPI Specification 3.1.1, Section 4.2: "The schema exposes two types of
-// fields: fixed fields, which have a declared name, and patterned fields,
-// which have a declared pattern for the field name". These objects declare
-// `^x-` as their only pattern, so a member that is neither is not a field that
-// this specification defines
-template <std::size_t Size>
-auto openapi_reject_unknown_fields(
-    const JSON &object, const std::array<JSON::StringView, Size> &fields,
-    const Pointer &base, const char *message) -> void {
-  for (const auto &entry : object.as_object()) {
-    if (entry.first.starts_with(OPENAPI_EXTENSION_PREFIX) ||
-        std::ranges::find(fields, entry.first) != fields.cend()) {
-      continue;
-    }
-
-    throw OpenAPIError{openapi_child(base, entry.first), message};
-  }
-}
-
-inline auto openapi_expect_string(const JSON &value, const Pointer &base,
-                                  const JSON::StringView field,
-                                  const char *message) -> JSON::StringView {
-  if (!value.is_string()) {
-    throw OpenAPIError{openapi_child(base, field), message};
-  }
-
-  return value.to_string();
-}
-
-// OpenAPI Specification 3.1.1, Section 4.6: "Unless specified otherwise, all
-// fields that are URIs MAY be relative references as defined by RFC3986", so
-// what these fields hold is a URI reference rather than an absolute URI
-inline auto openapi_expect_uri_reference(const JSON &value, const Pointer &base,
-                                         const JSON::StringView field,
-                                         const char *type_message,
-                                         const char *syntax_message)
-    -> JSON::StringView {
-  const auto result{openapi_expect_string(value, base, field, type_message)};
-  if (!URI::is_uri_reference(result)) {
-    throw OpenAPIError{openapi_child(base, field), syntax_message};
-  }
-
-  return result;
-}
 
 // OpenAPI Specification 3.1.1, Section 4.8.3: "Contact information for the
 // exposed API"

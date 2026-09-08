@@ -1,0 +1,35 @@
+{
+  "document": {
+    "openapi": "3.1.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "https://{username}.gigantic-server.com:{port}/{basePath}",
+        "description": "The production API server",
+        "variables": {
+          "username": {
+            "default": "demo",
+            "description": "A user-specific subdomain."
+          },
+          "port": {
+            "enum": [
+              "8443",
+              "443"
+            ],
+            "default": "8443"
+          },
+          "basePath": {
+            "default": "v2"
+          }
+        }
+      }
+    ],
+    "paths": {}
+  },
+  "frame": {
+    "version": "3.1"
+  }
+}

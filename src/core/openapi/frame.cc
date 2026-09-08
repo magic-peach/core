@@ -1,6 +1,7 @@
 #include <sourcemeta/core/openapi.h>
 
 #include "info.h"
+#include "server.h"
 
 #include <memory>      // std::make_unique
 #include <string_view> // std::string_view
@@ -96,6 +97,7 @@ OpenAPIFrame::OpenAPIFrame(const JSON &document, const OpenAPIResolver &,
     : internal_{std::make_unique<Internal>(detect_version(document),
                                            openapi_parse_info(document))} {
   check_json_schema_dialect(document);
+  openapi_check_servers(document);
 }
 
 OpenAPIFrame::~OpenAPIFrame() = default;
