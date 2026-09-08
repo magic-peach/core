@@ -9,6 +9,10 @@
 #include <sourcemeta/core/jsonpointer.h>
 #include <sourcemeta/core/memory.h>
 
+// NOLINTBEGIN(misc-include-cleaner)
+#include <sourcemeta/core/openapi_error.h>
+// NOLINTEND(misc-include-cleaner)
+
 #include <cstdint>     // std::uint8_t
 #include <functional>  // std::function
 #include <memory>      // std::unique_ptr
@@ -81,6 +85,9 @@ public:
   /// a document no way of declaring an identity of its own, so this is the
   /// only way to give the description one. A referenced document whose root
   /// is a Schema Object may still override it through `$id`
+  ///
+  /// A document that does not conform to the specification is rejected here
+  /// rather than reported back
   OpenAPIFrame(const JSON &document, const OpenAPIResolver &resolver,
                std::string_view default_base = "");
 

@@ -1,4 +1,5 @@
 sourcemeta_library(NAMESPACE sourcemeta PROJECT core NAME openapi
+  PRIVATE_HEADERS error.h
   SOURCES frame.cc)
 
 if(SOURCEMETA_CORE_INSTALL)
