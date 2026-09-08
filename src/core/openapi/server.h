@@ -13,7 +13,6 @@
 namespace sourcemeta::core {
 
 constexpr auto OPENAPI_HASH_SERVERS{JSON::Object::hash("servers"sv)};
-constexpr auto OPENAPI_HASH_SERVER_URL{JSON::Object::hash("url"sv)};
 constexpr auto OPENAPI_HASH_SERVER_VARIABLES{JSON::Object::hash("variables"sv)};
 constexpr auto OPENAPI_HASH_SERVER_ENUM{JSON::Object::hash("enum"sv)};
 constexpr auto OPENAPI_HASH_SERVER_DEFAULT{JSON::Object::hash("default"sv)};
@@ -116,7 +115,7 @@ inline auto openapi_check_server(const JSON &value, const Pointer &base)
   // relative". It carries no requirement on its form, and it is a template
   // rather than a URL once a variable is named in braces, so the type is all
   // there is to check here
-  const auto *url{value.try_at("url", OPENAPI_HASH_SERVER_URL)};
+  const auto *url{value.try_at("url", OPENAPI_HASH_URL)};
   if (url == nullptr) {
     throw OpenAPIError{base, "The Server Object must declare a URL"};
   }

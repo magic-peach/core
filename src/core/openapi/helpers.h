@@ -19,6 +19,7 @@ using namespace std::string_view_literals;
 constexpr auto OPENAPI_EXTENSION_PREFIX{"x-"sv};
 
 constexpr auto OPENAPI_HASH_DESCRIPTION{JSON::Object::hash("description"sv)};
+constexpr auto OPENAPI_HASH_URL{JSON::Object::hash("url"sv)};
 
 inline auto openapi_child(const Pointer &base, const JSON::StringView field)
     -> Pointer {

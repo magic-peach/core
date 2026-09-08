@@ -1,6 +1,7 @@
 sourcemeta_library(NAMESPACE sourcemeta PROJECT core NAME openapi
   PRIVATE_HEADERS error.h
-  SOURCES helpers.h info.h server.h frame.cc version.cc)
+  SOURCES helpers.h external_documentation.h info.h server.h
+          frame.cc version.cc)
 
 if(SOURCEMETA_CORE_INSTALL)
   sourcemeta_library_install(NAMESPACE sourcemeta PROJECT core NAME openapi)

@@ -1,5 +1,6 @@
 #include <sourcemeta/core/openapi.h>
 
+#include "external_documentation.h"
 #include "info.h"
 #include "server.h"
 
@@ -98,6 +99,7 @@ OpenAPIFrame::OpenAPIFrame(const JSON &document, const OpenAPIResolver &,
                                            openapi_parse_info(document))} {
   check_json_schema_dialect(document);
   openapi_check_servers(document);
+  openapi_check_root_external_documentation(document);
 }
 
 OpenAPIFrame::~OpenAPIFrame() = default;

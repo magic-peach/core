@@ -21,7 +21,6 @@ constexpr auto OPENAPI_HASH_CONTACT{JSON::Object::hash("contact"sv)};
 constexpr auto OPENAPI_HASH_LICENSE{JSON::Object::hash("license"sv)};
 constexpr auto OPENAPI_HASH_VERSION{JSON::Object::hash("version"sv)};
 constexpr auto OPENAPI_HASH_NAME{JSON::Object::hash("name"sv)};
-constexpr auto OPENAPI_HASH_URL{JSON::Object::hash("url"sv)};
 constexpr auto OPENAPI_HASH_EMAIL{JSON::Object::hash("email"sv)};
 constexpr auto OPENAPI_HASH_IDENTIFIER{JSON::Object::hash("identifier"sv)};
 

@@ -1210,3 +1210,146 @@ TEST(server_variable_unknown_field) {
     EXPECT_EQ(error.location(), location);
   }
 }
+
+TEST(external_docs_is_not_an_object) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "externalDocs": "https://example.com",
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The External Documentation Object must be an object");
+    const sourcemeta::core::Pointer location{"externalDocs"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(external_docs_is_an_array) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "externalDocs": [],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The External Documentation Object must be an object");
+    const sourcemeta::core::Pointer location{"externalDocs"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(external_docs_missing_url) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "externalDocs": { "description": "Find more info here" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The External Documentation Object must declare a URI");
+    const sourcemeta::core::Pointer location{"externalDocs"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(external_docs_url_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "externalDocs": { "url": 1 },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The External Documentation Object URI must be a string");
+    const sourcemeta::core::Pointer location{"externalDocs", "url"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(external_docs_url_is_not_a_uri_reference) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "externalDocs": { "url": "https://example.com/a b" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(
+        error.what(),
+        "The External Documentation Object URI must be a URI reference");
+    const sourcemeta::core::Pointer location{"externalDocs", "url"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(external_docs_description_is_not_a_string) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "externalDocs": { "url": "https://example.com", "description": 1 },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(
+        error.what(),
+        "The External Documentation Object description must be a string");
+    const sourcemeta::core::Pointer location{"externalDocs", "description"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(external_docs_unknown_field) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "externalDocs": { "url": "https://example.com", "title": "Docs" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(
+        error.what(),
+        "The External Documentation Object does not define this field");
+    const sourcemeta::core::Pointer location{"externalDocs", "title"};
+    EXPECT_EQ(error.location(), location);
+  }
+}

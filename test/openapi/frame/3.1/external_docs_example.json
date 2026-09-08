@@ -1,0 +1,17 @@
+{
+  "document": {
+    "openapi": "3.1.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "externalDocs": {
+      "description": "Find more info here",
+      "url": "https://example.com"
+    },
+    "paths": {}
+  },
+  "frame": {
+    "version": "3.1"
+  }
+}
