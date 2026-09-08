@@ -732,3 +732,117 @@ TEST(license_unknown_field) {
     EXPECT_EQ(error.location(), location);
   }
 }
+
+TEST(json_schema_dialect_is_null) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "jsonSchemaDialect": null,
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The OpenAPI dialect must be a string");
+    const sourcemeta::core::Pointer location{"jsonSchemaDialect"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(json_schema_dialect_is_a_number) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "jsonSchemaDialect": 1,
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The OpenAPI dialect must be a string");
+    const sourcemeta::core::Pointer location{"jsonSchemaDialect"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(json_schema_dialect_is_an_object) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "jsonSchemaDialect": {},
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The OpenAPI dialect must be a string");
+    const sourcemeta::core::Pointer location{"jsonSchemaDialect"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(json_schema_dialect_is_an_array) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "jsonSchemaDialect": [],
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The OpenAPI dialect must be a string");
+    const sourcemeta::core::Pointer location{"jsonSchemaDialect"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(json_schema_dialect_with_a_space) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "jsonSchemaDialect": "https://spec.openapis.org/oas/3.1/dialect /base",
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The OpenAPI dialect must be a URI reference");
+    const sourcemeta::core::Pointer location{"jsonSchemaDialect"};
+    EXPECT_EQ(error.location(), location);
+  }
+}
+
+TEST(json_schema_dialect_without_a_scheme_body) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "jsonSchemaDialect": "://base",
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The OpenAPI dialect must be a URI reference");
+    const sourcemeta::core::Pointer location{"jsonSchemaDialect"};
+    EXPECT_EQ(error.location(), location);
+  }
+}

@@ -10,6 +10,8 @@ namespace {
 using namespace std::string_view_literals;
 
 constexpr auto HASH_OPENAPI{sourcemeta::core::JSON::Object::hash("openapi"sv)};
+constexpr auto HASH_JSON_SCHEMA_DIALECT{
+    sourcemeta::core::JSON::Object::hash("jsonSchemaDialect"sv)};
 
 auto version_string(const sourcemeta::core::OpenAPIVersion version)
     -> sourcemeta::core::JSON::StringView {
@@ -61,6 +63,25 @@ auto detect_version(const sourcemeta::core::JSON &document)
   return result.value();
 }
 
+// The default dialect is not resolved here, only checked. Applying it to the
+// Schema Objects that a document contains is what framing them will do
+auto check_json_schema_dialect(const sourcemeta::core::JSON &document) -> void {
+  const auto *dialect{
+      document.try_at("jsonSchemaDialect", HASH_JSON_SCHEMA_DIALECT)};
+  if (dialect == nullptr) {
+    return;
+  }
+
+  // OpenAPI Specification 3.1.1, Section 4.8.1: "jsonSchemaDialect | string |
+  // The default value for the `$schema` keyword within Schema Objects
+  // contained within this OAS document. This MUST be in the form of a URI"
+  [[maybe_unused]] const auto value{
+      sourcemeta::core::openapi_expect_uri_reference(
+          *dialect, sourcemeta::core::EMPTY_POINTER, "jsonSchemaDialect"sv,
+          "The OpenAPI dialect must be a string",
+          "The OpenAPI dialect must be a URI reference")};
+}
+
 } // namespace
 
 namespace sourcemeta::core {
@@ -73,7 +94,9 @@ struct OpenAPIFrame::Internal {
 OpenAPIFrame::OpenAPIFrame(const JSON &document, const OpenAPIResolver &,
                            const std::string_view)
     : internal_{std::make_unique<Internal>(detect_version(document),
-                                           openapi_parse_info(document))} {}
+                                           openapi_parse_info(document))} {
+  check_json_schema_dialect(document);
+}
 
 OpenAPIFrame::~OpenAPIFrame() = default;
 
