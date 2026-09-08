@@ -83,3 +83,123 @@ TEST(document_array) {
     EXPECT_EQ(error.location(), sourcemeta::core::EMPTY_POINTER);
   }
 }
+
+TEST(missing_version) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "info": { "title": "Example", "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The OpenAPI Description must declare its version");
+    EXPECT_EQ(error.location(), sourcemeta::core::EMPTY_POINTER);
+  }
+}
+
+TEST(version_is_null) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": null,
+    "info": { "title": "Example", "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The OpenAPI version must be a string");
+    EXPECT_EQ(error.location(), sourcemeta::core::Pointer{"openapi"});
+  }
+}
+
+TEST(version_is_a_number) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": 3.1,
+    "info": { "title": "Example", "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "The OpenAPI version must be a string");
+    EXPECT_EQ(error.location(), sourcemeta::core::Pointer{"openapi"});
+  }
+}
+
+TEST(version_without_patch_component) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.1",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "Unsupported OpenAPI Specification version");
+    EXPECT_EQ(error.location(), sourcemeta::core::Pointer{"openapi"});
+  }
+}
+
+TEST(version_earlier_minor) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.0.4",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "Unsupported OpenAPI Specification version");
+    EXPECT_EQ(error.location(), sourcemeta::core::Pointer{"openapi"});
+  }
+}
+
+TEST(version_later_minor) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "openapi": "3.2.0",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(), "Unsupported OpenAPI Specification version");
+    EXPECT_EQ(error.location(), sourcemeta::core::Pointer{"openapi"});
+  }
+}
+
+TEST(swagger_document) {
+  const auto document{sourcemeta::core::parse_json(R"JSON({
+    "swagger": "2.0",
+    "info": { "title": "Example", "version": "1.0.0" },
+    "paths": {}
+  })JSON")};
+
+  try {
+    [[maybe_unused]] const sourcemeta::core::OpenAPIFrame frame{document,
+                                                                nullptr};
+    FAIL();
+  } catch (const sourcemeta::core::OpenAPIError &error) {
+    EXPECT_STREQ(error.what(),
+                 "The OpenAPI Description must declare its version");
+    EXPECT_EQ(error.location(), sourcemeta::core::EMPTY_POINTER);
+  }
+}

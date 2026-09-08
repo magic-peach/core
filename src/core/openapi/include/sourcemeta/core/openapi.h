@@ -41,6 +41,29 @@ enum class OpenAPIVersion : std::uint8_t {
 };
 
 /// @ingroup openapi
+/// Determine the version of an OpenAPI Description from its `openapi` field
+/// without framing it, returning no value for a version we do not recognise.
+/// The patch component of the field carries no meaning, so every `3.1.x`
+/// release maps to the same result. For example:
+///
+/// ```cpp
+/// #include <sourcemeta/core/json.h>
+/// #include <sourcemeta/core/openapi.h>
+/// #include <cassert>
+///
+/// const auto document{sourcemeta::core::parse_json(R"({
+///   "openapi": "3.1.1",
+///   "info": { "title": "Example", "version": "1.0.0" },
+///   "paths": {}
+/// })")};
+///
+/// assert(sourcemeta::core::openapi_version(document).value() ==
+///        sourcemeta::core::OpenAPIVersion::OPENAPI_3_1);
+/// ```
+SOURCEMETA_CORE_OPENAPI_EXPORT
+auto openapi_version(const JSON &document) -> std::optional<OpenAPIVersion>;
+
+/// @ingroup openapi
 /// What a resolver hands back: either a document it owns or one that the
 /// caller keeps alive. The root of the result may be an OpenAPI Object or a
 /// Schema Object, as an OpenAPI Description may span both

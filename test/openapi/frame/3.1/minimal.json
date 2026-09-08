@@ -7,5 +7,7 @@
     },
     "paths": {}
   },
-  "frame": {}
+  "frame": {
+    "version": "3.1"
+  }
 }

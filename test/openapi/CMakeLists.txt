@@ -1,5 +1,5 @@
 sourcemeta_test(NAMESPACE sourcemeta PROJECT core NAME openapi
-  SOURCES openapi_frame_error_test.cc)
+  SOURCES openapi_frame_error_test.cc openapi_version_test.cc)
 
 target_link_libraries(sourcemeta_core_openapi_unit
   PRIVATE sourcemeta::core::openapi)
